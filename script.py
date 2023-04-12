@@ -3,13 +3,15 @@ import requests
 import pandas as pd
 from pathlib import Path
 import datetime
+import time
+import os
 
 # colocar token aqui
 token = "KM4r0WcRDdbDewRvZ71dMEjG0kLky543xsx6"
 
 headers = {"Authorization": "bearer ghp_"+token}
 
-csvSize = 500
+csvSize = 1
 reposCsvName = 'repositories.csv'
 reposCsvPath = Path('./'+reposCsvName)
 
@@ -49,7 +51,7 @@ def fillRepoCsv():
     endCursor = "null"
 
     error = 0
-    while (len(repositories) < 500):
+    while (len(repositories) < 1):
         request = requests.post('https://api.github.com/graphql',
                                 json={'query': query}, headers=headers)
         result = request.json()
@@ -95,7 +97,29 @@ if prsCsvPath.is_file():
 else:
     prsResults = pd.DataFrame()
 
-
+def run(query):
+    request = requests.post('https://api.github.com/graphql',
+                                    json={'query': query}, headers=headers)
+                        
+    while request.status_code == 502:
+        time.sleep(2)
+        request = requests.post('https://api.github.com/graphql',
+                                    json={'query': query}, headers=headers)
+    if request.status_code == 200:
+        return request.json()
+    else:
+        raise Exception("Query failed to run by returning code of {}. {}".format(
+            request.status_code, query))
+ 
+def create_csv(result):
+    prs =pd.DataFrame.from_records([result])
+  
+    if not (os.path.exists(prsCsvName)):
+        prs.to_csv(prsCsvName, index=False, sep=';')
+    else:
+        prs.to_csv(prsCsvName, index=False, sep=';',mode='a',header=False)
+        
+   
 for index, repo in enumerate(repos.values.tolist()):
     if len(prsResults) > 0 and prsResults['repository'].tolist().count(repo[0]) >= repo[3]:
         continue
@@ -125,25 +149,30 @@ for index, repo in enumerate(repos.values.tolist()):
                             createdAt
                             mergedAt
                             closedAt
+                            bodyText
+                            reviews { totalCount }
+                            participants { totalCount }
+                            files { totalCount }
                         }
                     }
                 }
             }
         """
         query = query.replace('nameWithOwner', repo[0])
-        prs = []
         repoPrs = []
         endCursor = "null"
         error = 0
+        filteredPrs = {}
+        
         if len(prsResults) > 0:
             prsAlreadyConsulted = prsResults['repository'].tolist().count(
                 repo[0])
         else:
             prsAlreadyConsulted = 0
+            
         while (len(repoPrs) < (repo[3] - prsAlreadyConsulted)):
-            request = requests.post('https://api.github.com/graphql',
-                                    json={'query': query}, headers=headers)
-            result = request.json()
+            result= run(query)
+                        
             if 'data' in result:
                 for pr in result['data']['search']['nodes']:
                     # verifica se pr foi fechado automaticamente (tem mais que uma hora entre criação e final)
@@ -161,14 +190,44 @@ for index, repo in enumerate(repos.values.tolist()):
                         diff = mergedAt - createdAt
                         diffSeconds = diff.total_seconds()
                         hours = divmod(diffSeconds, 3600)[0]
-                    if hours >= 1:
+                        
+                    reviews = pr['reviews']['totalCount']
+                    
+                    if hours >= 1 and reviews >= 1:
                         pr['repository'] = pr['repository']['owner']['login'] + \
                             pr['repository']['name']
-                        repoPrs.append(pr)
-                query = query.replace(
-                    endCursor, '"'+result['data']['search']['pageInfo']['endCursor']+'"')
-                endCursor = '"' + \
+                            
+                        if len(pr['bodyText']) > 0:
+                            pr['bodySize'] = len(pr['bodyText'])
+                        else:
+                            pr['bodySize'] = 0
+                        
+                        
+                        filteredPrs['repository'] = pr['repository']
+                        filteredPrs['state'] = pr['state']
+                        filteredPrs['createdAt'] = pr['createdAt']
+                        if(pr['state'] == 'MERGED'):
+                            filteredPrs['mergedAt'] = pr['mergedAt']
+                        else:
+                            filteredPrs['mergedAt'] = 'NaN'
+                        if(pr['state'] == 'CLOSED'):
+                            filteredPrs['closedAt'] = pr['closedAt']
+                        else:
+                            filteredPrs['closedAt'] = 'NaN'
+                        filteredPrs['reviews'] = pr['reviews']['totalCount']
+                        filteredPrs['participants'] = pr['participants']['totalCount']
+                        filteredPrs['bodySize'] = pr['bodySize']
+                        filteredPrs['files'] = pr['files']['totalCount']
+                        
+                        create_csv(filteredPrs)
+                        
+                if (result['data']['search']['pageInfo']['endCursor'] is not None):
+                    query = query.replace(
+                        endCursor, '"'+result['data']['search']['pageInfo']['endCursor']+'"')
+                    endCursor = '"' + \
                     result['data']['search']['pageInfo']['endCursor']+'"'
+                else:
+                    break
             else:
                 error += 1
                 if (error > 5):
@@ -177,6 +236,5 @@ for index, repo in enumerate(repos.values.tolist()):
                     break
                 else:
                     continue
-        prsResults = pd.concat(
-            [prsResults, pd.DataFrame.from_records([repoPrs])])
-        prsResults.to_csv(prsCsvName, index=False, sep=';')
+            
+        
