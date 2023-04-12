@@ -151,8 +151,11 @@ for index, repo in enumerate(repos.values.tolist()):
                             closedAt
                             bodyText
                             reviews { totalCount }
+                            comments { totalCount } 
                             participants { totalCount }
-                            files { totalCount }
+                            changedFiles
+                            additions
+                            deletions
                         }
                     }
                 }
@@ -217,7 +220,11 @@ for index, repo in enumerate(repos.values.tolist()):
                         filteredPrs['reviews'] = pr['reviews']['totalCount']
                         filteredPrs['participants'] = pr['participants']['totalCount']
                         filteredPrs['bodySize'] = pr['bodySize']
-                        filteredPrs['files'] = pr['files']['totalCount']
+                        filteredPrs['changedFiles'] = pr['changedFiles']
+                        filteredPrs['comments'] = pr['comments']['totalCount']
+                        filteredPrs['additions'] = pr['additions']
+                        filteredPrs['deletions'] = pr['deletions']
+                        filteredPrs['hourSpent'] = hours
                         
                         create_csv(filteredPrs)
                         
