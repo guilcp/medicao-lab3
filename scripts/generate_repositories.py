@@ -18,7 +18,7 @@ def fillRepoCsv():
         if 'data' in result:
             for repo in result['data']['search']['nodes']:
                 # seleciona apenas repositorios com mais de 100 prs merged + closed
-                if repo['closedPRs']['totalCount'] + repo['mergedPRs']['totalCount'] >= 100:
+                if repo['closedPRs']['totalCount'] + repo['mergedPRs']['totalCount'] >= 100 and len(repositories) < 200:
                     repo['closedPRs'] = repo['closedPRs']['totalCount']
                     repo['mergedPRs'] = repo['mergedPRs']['totalCount']
                     repo['totalPRs'] = repo['closedPRs'] + repo['mergedPRs']

@@ -1,41 +1,36 @@
 getPullRequestsQuery = """
-            {
-                search(
-                    query: \"type:pr repo:nameWithOwner state:closed state:merged\"
-                    type: ISSUE
-                    first: 30
-                    after: null
-                ) {
+        {
+            repository(owner: "{owner}", name: "{name}") {
+                pullRequests(states: [CLOSED, MERGED], first: 50, after: null) {
                     pageInfo {
                         endCursor
                         startCursor
                     }
                     nodes {
-                        ... on PullRequest {
-                            repository {
-                                owner {
-                                    login
-                                }
-                                name
+                        repository {
+                            owner {
+                                login
                             }
-                            title
-                            state
-                            createdAt
-                            mergedAt
-                            closedAt
-                            bodyText
-                            reviews { totalCount }
-                            comments { totalCount } 
-                            participants { totalCount }
-                            changedFiles
-                            additions
-                            deletions
-                            number
-                            id
+                            name
                         }
+                        title
+                        state
+                        createdAt
+                        mergedAt
+                        closedAt
+                        bodyText
+                        reviews { totalCount }
+                        comments { totalCount } 
+                        participants { totalCount }
+                        changedFiles
+                        additions
+                        deletions
+                        number
+                        id
                     }
                 }
             }
+        }
         """
         
 getRepositoriesQuery = """
