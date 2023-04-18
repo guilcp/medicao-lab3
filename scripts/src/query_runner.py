@@ -3,11 +3,13 @@ import time
 
 # colocar token aqui
 TOKEN = 0
-TOKENS = ["KM4r0WcRDdbDewRvZ71dMEjG0kLky543xsx6", "eOVIR7AwkNb7mzKjuY4UoGSqedkBkL0dC4nu"]
+TOKENS = ["eOVIR7AwkNb7mzKjuY4UoGSqedkBkL0dC4nu", "SAC5Cq2Apnat2W3JLQDH7l4mjfxK271beAHY"]
 
-headers = {"Authorization": "bearer ghp_"+TOKENS[TOKEN]}
+
 
 def run_query(query):
+    global TOKEN
+    headers = {"Authorization": "bearer ghp_"+TOKENS[TOKEN]}
     request = requests.post('https://api.github.com/graphql',
                                     json={'query': query}, headers=headers)                        
     ratelimitRemaining = request.headers.get('x-ratelimit-remaining')
