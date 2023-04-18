@@ -11,7 +11,7 @@ def run_query(query):
     request = requests.post('https://api.github.com/graphql',
                                     json={'query': query}, headers=headers)                        
     ratelimitRemaining = request.headers.get('x-ratelimit-remaining')
-    print(ratelimitRemaining)
+    if ratelimitRemaining is not None: print('requests sobrando pro token: '+ratelimitRemaining)
     if not ratelimitRemaining and request.status_code in (403, 502):
         time.sleep(20)
         return run_query(query)
