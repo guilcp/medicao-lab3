@@ -86,16 +86,8 @@ spring-projects/spring-boot;5563;42;5605
 gohugoio/hugo;2325;1931;4256
 f/awesome-chatgpt-prompts;95;103;198
 fatedier/frp;209;445;654
-typicode/json-server;161;109;270
-nvm-sh/nvm;278;680;958
-moby/moby;4652;18215;22867
-pytorch/pytorch;59966;5379;65345
 AUTOMATIC1111/stable-diffusion-webui;643;933;1576
 neovim/neovim;3608;9578;13186
-thedaviddias/Front-End-Checklist;120;172;292
-florinpop17/app-ideas;125;149;274
-iptv-org/iptv;557;5258;5815
-hakimel/reveal.js;547;373;920
-elastic/elasticsearch;8089;54498;62587
 webpack/webpack;1727;4267;5994
 netdata/netdata;781;6506;7287
+iptv-org/iptv;557;5258;5815

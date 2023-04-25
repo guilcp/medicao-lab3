@@ -3,7 +3,7 @@ import src.path as path
 import os
 
 def create_csv(result):
-    prs =pd.DataFrame.from_records([result])
+    prs =pd.DataFrame.from_records(result)
   
     if not (os.path.exists(path.prsFilterCsvPath)):
         prs.to_csv(path.prsFilterCsvPath, index=False, sep=';')
@@ -40,4 +40,6 @@ def pr_filter(csv):
 # le do csv de repositorios e itera sobre eles para consultar os prs
 prs = pd.read_csv(path.prsCsvPath, header=0, sep=';')
 
-pr_filter(prs)
+filteredPrs = prs.loc[(prs['hours'] >= 1) & (prs['reviews'] >= 1)]
+create_csv(filteredPrs)
+# pr_filter(prs)
